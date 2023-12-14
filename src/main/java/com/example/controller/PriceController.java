@@ -2,7 +2,7 @@ package com.example.controller;
 
 import com.example.model.Price;
 import com.example.service.PriceService;
-import lombok.extern.slf4j.Slf4j;
+import io.swagger.annotations.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -14,24 +14,38 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@Slf4j
+@Api(tags = "Price", description = "Endpoints para gestionar precios")
 public class PriceController {
 
     @Autowired
     private PriceService priceService;
 
     @PostMapping(value = "/getPriceList", produces = "application/json", consumes = "application/json")
-    public ResponseEntity<?> getPriceList(@RequestBody Map<String, Object> params) {
+    @ApiOperation(value = "Obtener lista de precios",
+            notes = "Obtiene una lista de precios según los parámetros proporcionados.",
+            response = Price.class,
+            responseContainer = "List")
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "Operación exitosa. Devuelve la lista de precios.", response = Price.class, responseContainer = "List"),
+            @ApiResponse(code = 204, message = "Sin contenido. No se encontraron precios para los parámetros proporcionados."),
+            @ApiResponse(code = 400, message = "Solicitud incorrecta. Puede deberse a parámetros inválidos."),
+            @ApiResponse(code = 403, message = "Acceso prohibido. No tienes los permisos necesarios."),
+            @ApiResponse(code = 500, message = "Error interno del servidor. Consulta los logs para más detalles.")
+    })
+    public ResponseEntity<List<Price>> getPriceList(
+            @ApiParam(value = "Parámetros para la obtención de la lista de precios. Ejemplo: {\"productId\": 35455, \"brandId\": 2, \"applicationDate\": \"2020-06-14-15.00.00\"}", required = true)
+            @RequestBody Map<String, Object> params) {
+
         try {
-            // Delegar toda la lógica al servicio
             List<Price> prices = priceService.getPriceList(params);
 
-            log.info("Returning {} prices", prices.size());
-
-            return ResponseEntity.ok(prices);
+            if (prices != null && !prices.isEmpty()) {
+                return ResponseEntity.ok(prices);
+            } else {
+                return ResponseEntity.status(HttpStatus.NO_CONTENT).body(null);
+            }
         } catch (Exception e) {
-            log.error("Error processing getPriceList request", e);
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid request parameters");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
         }
     }
 }
