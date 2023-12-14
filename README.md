@@ -87,3 +87,6 @@ Se han realizado pruebas unitarias para validar el comportamiento del servicio P
 - Puerto del servidor: 8080
 - Contexto de servlet: /api
 - Nombre de la aplicación: PricingService
+
+### SonarCloud URL
+ -https://sonarcloud.io/project/overview?id=fromero9472_examenPricing
