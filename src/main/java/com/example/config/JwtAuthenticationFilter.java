@@ -8,7 +8,6 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Bean;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -21,6 +20,9 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
+/**
+ * Filtro para la autenticación basada en JWT.
+ */
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     @Value("${jwt.secret}")
@@ -29,24 +31,34 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     @Autowired
     private UserService userService;
 
+    /**
+     * Método para realizar la lógica de filtrado interno en cada solicitud.
+     */
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         try {
+            // Extraer el token JWT de la solicitud
             String jwt = extractJwtFromRequest(request);
 
+            // Validar el token y autenticar al usuario
             if (jwt != null && validateToken(jwt)) {
                 Authentication authentication = getAuthentication(jwt);
                 SecurityContextHolder.getContext().setAuthentication(authentication);
             }
 
         } catch (ExpiredJwtException | SignatureException e) {
+            // Manejar excepciones relacionadas con el token JWT
             handleJwtException(response, e);
             return;
         }
 
+        // Continuar con la cadena de filtros
         filterChain.doFilter(request, response);
     }
 
+    /**
+     * Extraer el token JWT de la solicitud.
+     */
     private String extractJwtFromRequest(HttpServletRequest request) {
         String bearerToken = request.getHeader(HttpHeaders.AUTHORIZATION);
 
@@ -57,6 +69,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         return null;
     }
 
+    /**
+     * Validar el token JWT.
+     */
     private boolean validateToken(String jwt) {
         try {
             Jwts.parser().setSigningKey(jwtSecret).parseClaimsJws(jwt);
@@ -66,11 +81,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
     }
 
+    /**
+     * Obtener la autenticación a partir del token JWT.
+     */
     private Authentication getAuthentication(String jwt) {
         Claims claims = Jwts.parser().setSigningKey(jwtSecret).parseClaimsJws(jwt).getBody();
         String username = claims.getSubject();
 
-        // Busca el usuario en el servicio de usuarios
+        // Buscar el usuario en el servicio de usuarios
         User user = userService.findByUsername(username);
 
         if (user != null) {
@@ -80,6 +98,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         return null;
     }
 
+    /**
+     * Manejar excepciones relacionadas con el token JWT.
+     */
     private void handleJwtException(HttpServletResponse response, Exception e) throws IOException {
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
         response.getWriter().write("Token expirado o no válido");
