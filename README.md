@@ -63,6 +63,10 @@ PricingService es una aplicación que proporciona servicios relacionados con la 
 #### SecurityConfig
 - **Propósito:** Configura la seguridad de la aplicación, permitiendo el acceso a ciertos endpoints sin autenticación.
 
+#### Configuración de Swagger:
+
+- **Propósito:** Para visualizar y probar los endpoints de la API, Swagger está integrado en la aplicación. Puedes acceder a la interfaz de Swagger en [http://localhost:8080/api/swagger-ui/index.html](http://localhost:8080/api/swagger-ui/index.html).
+
 ### 6. Archivo de Propiedades (application.properties)
 
 - **Configuración del servidor, base de datos H2, Hibernate y JWT.**
