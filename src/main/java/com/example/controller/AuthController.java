@@ -3,6 +3,8 @@ package com.example.controller;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -12,6 +14,7 @@ import javax.crypto.SecretKey;
 import java.util.Date;
 
 @RestController
+@Api(tags = "Authentication", description = "Endpoints para generar tokens de autenticación")
 public class AuthController {
 
     @Value("${jwt.secret}")
@@ -24,6 +27,7 @@ public class AuthController {
     private String jwtPassword;
 
     @PostMapping("/generate-token")
+    @ApiOperation(value = "Generar token de autenticación", notes = "Genera un token de autenticación válido por 24 horas.")
     public ResponseEntity<String> generateToken() {
         // Verificar las credenciales (puedes personalizar esto según tu lógica de autenticación)
         if (isValidCredentials()) {
