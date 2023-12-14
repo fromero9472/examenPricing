@@ -22,7 +22,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         // Desactivar CSRF (Cross-Site Request Forgery) para simplificar
         http.csrf().disable()
                 // Permitir acceso sin autenticación a ciertos endpoints
-                .authorizeRequests().antMatchers("/generate-token", "/getPriceList").permitAll()
+                .authorizeRequests().antMatchers("/swagger-ui/**", "/v2/api-docs", "/swagger-resources/**", "/webjars/**","/generate-token", "/getPriceList").permitAll()
                 // Exigir autenticación para cualquier otra solicitud
                 .anyRequest().authenticated()
                 .and()
