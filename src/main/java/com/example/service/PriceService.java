@@ -1,15 +1,14 @@
 package com.example.service;
 
-import com.example.model.Price;
-import com.example.repository.PriceRepository;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
+import lombok.extern.slf4j.Slf4j;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
+import com.example.model.Price;
+import com.example.repository.PriceRepository;
 
 @Service
 @Slf4j
@@ -18,28 +17,47 @@ public class PriceService {
     @Autowired
     private PriceRepository priceRepository;
 
-    public List<Price> getPriceList(Map<String, Object> params) {
+    /**
+     * Obtiene un único precio filtrado por prioridad.
+     *
+     * @param params Parámetros para la obtención del precio.
+     * @return El precio filtrado por prioridad.
+     * @throws RuntimeException Si ocurre un error durante la ejecución.
+     */
+    public Price getSinglePrice(Map<String, Object> params) {
         try {
             // Extraer parámetros del mapa
             Long brandId = getLongParameter(params, "brandId");
             Long productId = getLongParameter(params, "productId");
             LocalDateTime applicationDate = parseStringToLocalDateTime((String) params.get("applicationDate"));
 
-            log.info("Getting price list for Brand ID {}, Product ID {}, Application Date {}", brandId, productId, applicationDate);
+            log.info("Getting single price for Brand ID {}, Product ID {}, Application Date {}", brandId, productId, applicationDate);
 
-            // Delegar al repositorio
-            List<Price> prices = priceRepository.findByBrandIdAndProductIdAndStartDate(brandId, productId, applicationDate);
+            // Delegar al repositorio con orden descendente por prioridad y límite 1
+            Price price = priceRepository.findByBrandIdAndProductIdAndStartDateOrderByPriorityDesc(
+                    brandId, productId, applicationDate);
 
-            log.info("Found {} prices", prices.size());
-            return prices;
+            if (price != null) {
+                // Devolver el primer resultado (mayor prioridad)
+                return price;
+            } else {
+                log.warn("No prices found for the given parameters");
+                return null;
+            }
         } catch (Exception e) {
-            log.error("Error processing getPriceList request", e);
-            throw new RuntimeException("Error processing getPriceList request", e);
+            log.error("Error processing getSinglePrice request", e);
+            throw new RuntimeException("Error processing getSinglePrice request", e);
         }
     }
 
-    // Métodos de utilidad
-
+    /**
+     * Convierte un valor del mapa a un Long.
+     *
+     * @param params    El mapa de parámetros.
+     * @param paramName El nombre del parámetro.
+     * @return El valor del parámetro convertido a Long.
+     * @throws IllegalArgumentException Si el valor no es un número.
+     */
     private Long getLongParameter(Map<String, Object> params, String paramName) {
         Object paramValue = params.get(paramName);
         if (paramValue instanceof Number) {
@@ -49,6 +67,12 @@ public class PriceService {
         }
     }
 
+    /**
+     * Convierte una cadena de fecha a LocalDateTime.
+     *
+     * @param dateString La cadena de fecha.
+     * @return LocalDateTime correspondiente a la cadena de fecha.
+     */
     private LocalDateTime parseStringToLocalDateTime(String dateString) {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd-HH.mm.ss");
         return LocalDateTime.parse(dateString, formatter);

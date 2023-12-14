@@ -20,7 +20,7 @@ public class PriceController {
     @Autowired
     private PriceService priceService;
 
-    @PostMapping(value = "/getPriceList", produces = "application/json", consumes = "application/json")
+    @PostMapping(value = "/getPrice", produces = "application/json", consumes = "application/json")
     @ApiOperation(value = "Obtener lista de precios",
             notes = "Obtiene una lista de precios según los parámetros proporcionados.",
             response = Price.class,
@@ -32,14 +32,14 @@ public class PriceController {
             @ApiResponse(code = 403, message = "Acceso prohibido. No tienes los permisos necesarios."),
             @ApiResponse(code = 500, message = "Error interno del servidor. Consulta los logs para más detalles.")
     })
-    public ResponseEntity<List<Price>> getPriceList(
+    public ResponseEntity<Price> getPriceList(
             @ApiParam(value = "Parámetros para la obtención de la lista de precios. Ejemplo: {\"productId\": 35455, \"brandId\": 2, \"applicationDate\": \"2020-06-14-15.00.00\"}", required = true)
             @RequestBody Map<String, Object> params) {
 
         try {
-            List<Price> prices = priceService.getPriceList(params);
+            Price prices = priceService.getSinglePrice(params);
 
-            if (prices != null && !prices.isEmpty()) {
+            if (prices != null) {
                 return ResponseEntity.ok(prices);
             } else {
                 return ResponseEntity.status(HttpStatus.NO_CONTENT).body(null);
